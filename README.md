@@ -65,6 +65,9 @@ Leader key: `Space`
 - `<C-h/j/k/l>` - Window navigation
 - `[d/]d` - Previous/next diagnostic
 
+
+```
+
 ## 📦 Directory Structure
 
 ```
@@ -92,4 +95,3 @@ Each aspect of this configuration is modular and easy to customize:
 ## 📝 License
 
 MIT
-```
