@@ -27,23 +27,28 @@ A modern, blazing-fast Neovim configuration designed for full-stack development 
 
 ## 🚦 Prerequisites
 
-```bash
 # Arch Linux
+```bash
 sudo pacman -S neovim ripgrep fd nodejs npm go
 yay -S swift-bin
 ```
 
 ## ⚡️ Quick Install
 
-```bash
 # Backup existing config
+```bash
 mv ~/.config/nvim ~/.config/nvim.bak
+```
 
 # Clone this repo
+```bash
 git clone https://github.com/marcusziade/nvim.git ~/.config/nvim
+```
 
 # Start Neovim (plugins will auto-install)
+```bash
 nvim
+```
 
 ## ⌨️ Key Bindings
 
@@ -65,8 +70,6 @@ Leader key: `Space`
 - `<C-h/j/k/l>` - Window navigation
 - `[d/]d` - Previous/next diagnostic
 
-
-```
 
 ## 📦 Directory Structure
 
