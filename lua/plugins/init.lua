@@ -93,5 +93,23 @@ return {
   },
 
   -- Wakatime
-  { 'wakatime/vim-wakatime', lazy = false }
+  { 'wakatime/vim-wakatime', lazy = false },
+
+  -- nvim-tree
+  {
+    "nvim-tree/nvim-tree.lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    keys = {
+      { "<leader>e", "<cmd>NvimTreeToggle<CR>", desc = "Toggle file explorer" },
+      { "<leader>fe", "<cmd>NvimTreeFocus<CR>", desc = "Focus file explorer" },
+    },
+    opts = {
+      filters = {
+          dotfiles = false,
+      },
+      disable_netrw = true,
+      hijack_cursor = true,
+      hijack_netrw = true,
+    },
+  }
 }
