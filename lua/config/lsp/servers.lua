@@ -1,8 +1,36 @@
 local lspconfig = require("lspconfig")
 local config = require("config.lsp")
 
+-- Ensure mason-lspconfig is loaded
+require("mason").setup()
+require("mason-lspconfig").setup({
+  ensure_installed = {
+    "gopls",
+    "ts_ls",
+    "pyright",
+  },
+  automatic_installation = true,
+})
+
+-- Go
+lspconfig.gopls.setup({
+  on_attach = config.on_attach,
+  capabilities = config.capabilities,
+  cmd = {"gopls"},
+  filetypes = { "go", "gomod", "gowork", "gotmpl" },
+  settings = {
+    gopls = {
+      analyses = {
+        unusedparams = true,
+      },
+      staticcheck = true,
+      gofumpt = true,
+    },
+  },
+})
+
 -- TypeScript/JavaScript
-lspconfig.tsserver.setup({
+lspconfig.ts_ls.setup({
   on_attach = config.on_attach,
   capabilities = config.capabilities,
   init_options = {
@@ -27,21 +55,7 @@ lspconfig.pyright.setup({
   },
 })
 
--- Go
-lspconfig.gopls.setup({
-  on_attach = config.on_attach,
-  capabilities = config.capabilities,
-  settings = {
-    gopls = {
-      analyses = {
-        unusedparams = true,
-      },
-      staticcheck = true,
-    },
-  },
-})
-
--- Swift
+-- Swift (using system installed sourcekit-lsp)
 lspconfig.sourcekit.setup({
   on_attach = config.on_attach,
   capabilities = config.capabilities,
