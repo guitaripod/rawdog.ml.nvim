@@ -21,7 +21,7 @@ A modern, blazing-fast Neovim configuration designed for full-stack development 
 - **AI Assistance**: Copilot
 - **LSP Support**: 
   - Go (gopls)
-  - TypeScript/JavaScript (tsserver)
+  - TypeScript/JavaScript (ts_ls))
   - Python (pyright)
   - Swift (sourcekit-lsp)
 
