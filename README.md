@@ -11,6 +11,8 @@ A modern, blazing-fast Neovim configuration designed for full-stack development 
 - 🎨 Treesitter-based syntax highlighting
 - 📦 Modular configuration for easy maintenance
 - ⌨️  Ergonomic keymaps for efficient coding
+- ⏳ Wakatime tracking
+- 🌳 nvim-tree filetree
 
 ## 🔧 Stack
 
@@ -69,6 +71,8 @@ Leader key: `Space`
 ### Navigation
 - `<C-h/j/k/l>` - Window navigation
 - `[d/]d` - Previous/next diagnostic
+- `<leader>fe` - Open and focus filetree
+- `<leader>e` - Toggle filetree open and close
 
 
 ## 📦 Directory Structure
