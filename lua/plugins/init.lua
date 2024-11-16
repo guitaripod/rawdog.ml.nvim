@@ -91,4 +91,7 @@ return {
       },
     },
   },
+
+  -- Wakatime
+  { 'wakatime/vim-wakatime', lazy = false }
 }
