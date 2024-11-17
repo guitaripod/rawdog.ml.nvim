@@ -140,4 +140,31 @@ return {
       -- add any options here
     }
   },
+
+  -- Crackboard
+  {
+    'boganworld/crackboard.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    config = function()
+      require('crackboard').setup({
+        session_key = '',
+      })
+    end,
+  },
+
+  -- Web-devicons
+  {
+    "nvim-tree/nvim-web-devicons",
+    lazy = false,
+    opts = {
+      strict = true,
+      override_by_filename = {
+        [".gitignore"] = {
+          icon = "",
+          color = "#f1502f",
+          name = "Gitignore"
+        }
+      }
+    }
+  },
 }

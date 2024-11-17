@@ -11,7 +11,8 @@ A modern, blazing-fast Neovim configuration designed for full-stack development 
 - 🎨 Treesitter-based syntax highlighting
 - 📦 Modular configuration for easy maintenance
 - ⌨️  Ergonomic keymaps for efficient coding
-- ⏳ Wakatime tracking
+- ⏳ Wakatime & Crackboard tracking
+- 📂 Web-devicons (You must have a nerd font installed)
 - 🌳 nvim-tree filetree
 - ⌨️  which-key for learning available keys for any given part of Neovim
 - 🗒️ comment.nvim for an intuitive code commenting tool
