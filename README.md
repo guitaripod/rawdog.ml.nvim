@@ -11,7 +11,7 @@ A modern, blazing-fast Neovim configuration designed for full-stack development 
 - 🎨 Treesitter-based syntax highlighting
 - 📦 Modular configuration for easy maintenance
 - ⌨️  Ergonomic keymaps for efficient coding
-- ⏳ Wakatime & Crackboard tracking
+- ⏳ Wakatime & Crackboard tracking (Installed locally and gitignored, see callsite at the top of `/lua/init.lua`)
 - 📂 Web-devicons (You must have a nerd font installed)
 - 🌳 nvim-tree filetree
 - ⌨️  which-key for learning available keys for any given part of Neovim
