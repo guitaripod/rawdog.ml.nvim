@@ -13,6 +13,8 @@ A modern, blazing-fast Neovim configuration designed for full-stack development 
 - ⌨️  Ergonomic keymaps for efficient coding
 - ⏳ Wakatime tracking
 - 🌳 nvim-tree filetree
+- ⌨️  which-key for learning available keys for any given part of Neovim
+- 🗒️ comment.nvim for an intuitive code commenting tool
 
 ## 🔧 Stack
 
@@ -69,10 +71,15 @@ Leader key: `Space`
 - `<leader>rn` - Rename symbol
 
 ### Navigation
+- `<leader>v` - Show which-key interface for available actions
 - `<C-h/j/k/l>` - Window navigation
 - `[d/]d` - Previous/next diagnostic
 - `<leader>fe` - Open and focus filetree
 - `<leader>e` - Toggle filetree open and close
+
+### Code comments
+- `gcc/gbc` - See more in comment.nvim docs
+
 
 
 ## 📦 Directory Structure
