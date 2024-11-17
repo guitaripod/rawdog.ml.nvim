@@ -10,7 +10,26 @@ end
 -- Core plugins list
 local core_plugins = {
   -- Core plugins
-  { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = { style = "night" } },
+  {
+    "catppuccin/nvim",
+    name = "catppuccin",
+    priority = 1000,
+    config = function()
+      require("catppuccin").setup({
+        flavour = "mocha",
+        integrations = {
+          telescope = true,
+          mason = true,
+          nvimtree = true,
+          which_key = true,
+          gitsigns = true,
+          treesitter = true,
+          cmp = true,
+        }
+      })
+      vim.cmd.colorscheme "catppuccin"
+    end
+  },
   { "nvim-lua/plenary.nvim", lazy = false },
   { "tpope/vim-surround" },
   { "numToStr/Comment.nvim", opts = {} },
@@ -82,7 +101,7 @@ local core_plugins = {
     "nvim-lualine/lualine.nvim",
     opts = {
       options = {
-        theme = "tokyonight",
+        theme = "catppuccin",
         component_separators = "|",
         section_separators = "",
       },
