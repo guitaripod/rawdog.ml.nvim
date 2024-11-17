@@ -3,3 +3,4 @@ lazy-lock.json
 .git/
 plugin/packer_compiled.lua
 .luarc.json
+/lua/tracker_plugins.lua

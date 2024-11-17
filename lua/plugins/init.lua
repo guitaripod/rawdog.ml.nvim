@@ -1,4 +1,14 @@
-return {
+-- Load tracker plugins if available
+local plugins = {}
+local ok, tracker_plugins = pcall(require, 'tracker_plugins')
+if ok then
+  for _, plugin in ipairs(tracker_plugins) do
+    table.insert(plugins, plugin)
+  end
+end
+
+-- Core plugins list
+local core_plugins = {
   -- Core plugins
   { "folke/tokyonight.nvim", lazy = false, priority = 1000, opts = { style = "night" } },
   { "nvim-lua/plenary.nvim", lazy = false },
@@ -94,10 +104,6 @@ return {
       },
     },
   },
-
-  -- Wakatime
-  { 'wakatime/vim-wakatime', lazy = false },
-
   -- nvim-tree
   {
     "nvim-tree/nvim-tree.lua",
@@ -143,18 +149,6 @@ return {
       -- add any options here
     }
   },
-
-  -- Crackboard
-  {
-    'boganworld/crackboard.nvim',
-    dependencies = { 'nvim-lua/plenary.nvim' },
-    config = function()
-      require('crackboard').setup({
-        session_key = '',
-      })
-    end,
-  },
-
   -- Web-devicons
   {
     "nvim-tree/nvim-web-devicons",
@@ -171,3 +165,10 @@ return {
     }
   },
 }
+
+-- Merge core plugins
+for _, plugin in ipairs(core_plugins) do
+  table.insert(plugins, plugin)
+end
+
+return plugins
