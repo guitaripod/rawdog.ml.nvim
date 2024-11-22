@@ -38,6 +38,23 @@ sudo pacman -S neovim ripgrep fd nodejs npm go
 yay -S swift-bin
 ```
 
+# macOS
+```bash
+# Install Homebrew if not already installed
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install required packages
+brew install neovim ripgrep fd node go
+
+# Install Swift (if not already installed with Xcode)
+# Note: It's recommended to install Xcode from the App Store for full Swift support
+xcode-select --install
+
+# Install a Nerd Font (optional but recommended for icons)
+brew tap homebrew/cask-fonts
+brew install --cask font-hack-nerd-font
+```
+
 ## ⚡️ Quick Install
 
 # Backup existing config
