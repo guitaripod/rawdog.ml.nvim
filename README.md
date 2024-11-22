@@ -47,7 +47,7 @@ mv ~/.config/nvim ~/.config/nvim.bak
 
 # Clone this repo
 ```bash
-git clone https://github.com/marcusziade/nvim.git ~/.config/nvim
+git clone https://github.com/marcusziade/rawdog.ml.nvim.git ~/.config/nvim
 ```
 
 # Start Neovim (plugins will auto-install)
