@@ -23,3 +23,6 @@ map("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename" })
 map("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Open diagnostic float" })
+
+-- Theme toggle
+vim.keymap.set('n', '<leader>tt', ':ThemeToggle<CR>', { silent = true })
