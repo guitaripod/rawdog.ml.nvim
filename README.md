@@ -16,6 +16,7 @@ A modern, blazing-fast Neovim configuration designed for full-stack development 
 - 🌳 nvim-tree filetree
 - ⌨️  which-key for learning available keys for any given part of Neovim
 - 🗒️ comment.nvim for an intuitive code commenting tool
+- 🎨 Catppuccin theme with dark/light mode toggle (`<leader>tt`)
 
 ## 🔧 Stack
 
@@ -98,6 +99,8 @@ Leader key: `Space`
 ### Code comments
 - `gcc/gbc` - See more in comment.nvim docs
 
+### Theme
+- `<leader>tt` - Toggle between Catppuccin dark (macchiato) and light (latte) themes
 
 
 ## 📦 Directory Structure
