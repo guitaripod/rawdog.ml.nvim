@@ -8,6 +8,9 @@ return {
       vim.g.catppuccin_flavour = "macchiato" -- Default dark theme
       require("catppuccin").setup()
       
+      -- Apply the colorscheme
+      vim.cmd.colorscheme("catppuccin")
+      
       -- Register the toggle command inside the config function
       vim.api.nvim_create_user_command('ThemeToggle', function()
         if vim.g.catppuccin_flavour == "latte" then
