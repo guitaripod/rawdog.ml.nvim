@@ -22,10 +22,13 @@ A fast, modern Neovim setup with automatic light/dark theme switching, full LSP 
 ```bash
 # macOS
 brew install neovim ripgrep fd node go
+# Swift comes with Xcode, or install standalone:
+xcode-select --install  # Installs command line tools including Swift
 brew install --cask font-fira-code-nerd-font  # For icons
 
 # Linux (Arch)
 sudo pacman -S neovim ripgrep fd nodejs npm go
+yay -S swift-bin  # Swift compiler and LSP
 yay -S ttf-firacode-nerd  # For icons
 ```
 
