@@ -19,7 +19,7 @@ require("lazy").setup({
     lazy = false,
     version = false,
   },
-  install = { colorscheme = { "catppuccin" } },
+  install = { colorscheme = { "solarized" } },
   checker = { enabled = false },
   performance = {
     rtp = {

@@ -1,27 +1,4 @@
 return {
-  -- Catppuccin (keeping for compatibility)
-  {
-    "catppuccin/nvim",
-    name = "catppuccin",
-    lazy = true,
-    opts = {
-      flavour = "auto", -- latte, frappe, macchiato, mocha
-      background = {
-        light = "latte",
-        dark = "mocha",
-      },
-      integrations = {
-        telescope = true,
-        mason = true,
-        nvimtree = true,
-        which_key = true,
-        gitsigns = true,
-        treesitter = true,
-        cmp = true,
-      }
-    },
-  },
-  
   -- Rose Pine (matching ghostty dark theme)
   {
     "rose-pine/neovim",
