@@ -1,4 +1,5 @@
 local M = {}
+local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 
 M.on_attach = function(client, bufnr)
   if client.supports_method("textDocument/formatting") then
