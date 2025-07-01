@@ -9,44 +9,10 @@ end
 
 -- Core plugins list
 local core_plugins = {
-  -- Core plugins
-  {
-    "catppuccin/nvim",
-    name = "catppuccin",
-    priority = 1000,
-    config = function()
-      require("catppuccin").setup({
-        flavour = "mocha",
-        integrations = {
-          telescope = true,
-          mason = true,
-          nvimtree = true,
-          which_key = true,
-          gitsigns = true,
-          treesitter = true,
-          cmp = true,
-        }
-      })
-      vim.cmd.colorscheme "catppuccin"
-    end
-  },
   { "nvim-lua/plenary.nvim", lazy = false },
   { "tpope/vim-surround" },
   { "numToStr/Comment.nvim", opts = {} },
 
-  -- File navigation
-  {
-    "nvim-telescope/telescope.nvim",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "nvim-telescope/telescope-fzf-native.nvim",
-    },
-    cmd = "Telescope",
-  },
-  {
-    "nvim-telescope/telescope-fzf-native.nvim",
-    build = "make",
-  },
 
   -- LSP Support
   {
@@ -90,6 +56,15 @@ local core_plugins = {
       auto_install = true,
       highlight = { enable = true },
       indent = { enable = true },
+      incremental_selection = {
+        enable = true,
+        keymaps = {
+          init_selection = "<C-space>",
+          node_incremental = "<C-space>",
+          scope_incremental = "<C-s>",
+          node_decremental = "<C-backspace>",
+        },
+      },
     },
   },
 
@@ -101,7 +76,7 @@ local core_plugins = {
     "nvim-lualine/lualine.nvim",
     opts = {
       options = {
-        theme = "catppuccin",
+        theme = "auto",
         component_separators = "|",
         section_separators = "",
       },
@@ -161,13 +136,6 @@ local core_plugins = {
     },
   },
 
-  -- Comment.nvim
-  {
-    'numToStr/Comment.nvim',
-    opts = {
-      -- add any options here
-    }
-  },
   -- Web-devicons
   {
     "nvim-tree/nvim-web-devicons",
