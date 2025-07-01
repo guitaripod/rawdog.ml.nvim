@@ -1,132 +1,85 @@
-# 🚀 Rawdog ML Neovim
+# Neovim Configuration
 
-A modern, blazing-fast Neovim configuration designed for full-stack development with first-class support for Go, TypeScript/JavaScript, Python, and Swift. Built with minimal bloat and maximum productivity in mind.
+A fast, modern Neovim setup with automatic light/dark theme switching, full LSP support, and intelligent plugin lazy-loading.
 
-## ⚡️ Features
+## Features
 
-- 🔥 Lazy-loaded plugins for <50ms startup time
-- 🌳 Native LSP with zero-config setup
-- 🤖 GitHub Copilot integration
-- 🔍 Blazing fast fuzzy finding with Telescope + ripgrep
-- 🎨 Treesitter-based syntax highlighting
-- 📦 Modular configuration for easy maintenance
-- ⌨️  Ergonomic keymaps for efficient coding
-- ⏳ Wakatime & Crackboard tracking (Installed locally and gitignored, see callsite at the top of `/lua/init.lua`)
-- 📂 Web-devicons (You must have a nerd font installed)
-- 🌳 nvim-tree filetree
-- ⌨️  which-key for learning available keys for any given part of Neovim
-- 🗒️ comment.nvim for an intuitive code commenting tool
-- 🎨 Catppuccin theme with dark/light mode toggle (`<leader>tt`)
+- 🌓 **Auto theme switching** - Matches system light/dark mode (Solarized Light / Rose Pine)
+- ⚡ **Fast startup** - Lazy-loaded plugins for <50ms startup
+- 🔧 **LSP ready** - Pre-configured for Go, TypeScript, Python, and Swift
+- 🔍 **Fuzzy finding** - Telescope with ripgrep integration
+- 🌳 **Smart syntax** - Treesitter with incremental selection
+- 📁 **File explorer** - nvim-tree with icons support
 
-## 🔧 Stack
+## Installation
 
-- **Plugin Management**: lazy.nvim
-- **Completions**: nvim-cmp
-- **Fuzzy Finding**: Telescope + ripgrep
-- **Git Integration**: gitsigns.nvim
-- **AI Assistance**: Copilot
-- **LSP Support**: 
-  - Go (gopls)
-  - TypeScript/JavaScript (ts_ls)
-  - Python (pyright)
-  - Swift (sourcekit-lsp)
+### Prerequisites
 
-## 🚦 Prerequisites
-
-# Arch Linux
 ```bash
-sudo pacman -S neovim ripgrep fd nodejs npm go
-yay -S swift-bin
-```
-
 # macOS
-```bash
-# Install Homebrew if not already installed
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Install required packages
 brew install neovim ripgrep fd node go
 
-# Install Swift (if not already installed with Xcode)
-# Note: It's recommended to install Xcode from the App Store for full Swift support
-xcode-select --install
-
-# Install a Nerd Font (optional but recommended for icons)
-brew tap homebrew/cask-fonts
-brew install --cask font-hack-nerd-font
+# Linux (Arch)
+sudo pacman -S neovim ripgrep fd nodejs npm go
 ```
 
-## ⚡️ Quick Install
+### Install
 
+```bash
 # Backup existing config
-```bash
 mv ~/.config/nvim ~/.config/nvim.bak
-```
 
-# Clone this repo
-```bash
-git clone https://github.com/marcusziade/rawdog.ml.nvim.git ~/.config/nvim
-```
+# Clone this config
+git clone <your-repo-url> ~/.config/nvim
 
-# Start Neovim (plugins will auto-install)
-```bash
+# Start Neovim (plugins auto-install)
 nvim
 ```
 
-## ⌨️ Key Bindings
+## Key Bindings
 
-Leader key: `Space`
+**Leader**: `Space`
 
-### General
+### Essential
 - `<leader>ff` - Find files
-- `<leader>fg` - Live grep
-- `<leader>fb` - Browse buffers
+- `<leader>fg` - Live grep  
+- `<leader>e` - Toggle file explorer
+- `<C-h/j/k/l>` - Navigate windows
 
-### LSP
+### Code Navigation
 - `gd` - Go to definition
 - `gr` - Find references
-- `K` - Show hover documentation
+- `K` - Hover docs
 - `<leader>ca` - Code actions
-- `<leader>rn` - Rename symbol
+- `<leader>rn` - Rename
 
-### Navigation
-- `<leader>v` - Show which-key interface for available actions
-- `<C-h/j/k/l>` - Window navigation
-- `[d/]d` - Previous/next diagnostic
-- `<leader>fe` - Open and focus filetree
-- `<leader>e` - Toggle filetree open and close
+### Git
+- `<leader>gs` - Git status
+- `<leader>gb` - Git branches
+- `<leader>gc` - Git commits
 
-### Code comments
-- `gcc/gbc` - See more in comment.nvim docs
-
-### Theme
-- `<leader>tt` - Toggle between Catppuccin dark (macchiato) and light (latte) themes
-
-
-## 📦 Directory Structure
+## Structure
 
 ```
-~/.config/nvim
-├── init.lua
-└── lua/
-    ├── config/
-    │   ├── completion.lua   # nvim-cmp setup
-    │   ├── keymaps.lua     # Key bindings
-    │   ├── lazy.lua        # Plugin manager config
-    │   ├── lsp/           # LSP configurations
-    │   └── options.lua     # Neovim options
-    └── plugins/
-        └── init.lua        # Plugin specifications
+~/.config/nvim/
+├── init.lua              # Entry point
+├── lua/
+│   ├── config/          # Core settings
+│   │   ├── options.lua  # Editor options
+│   │   ├── keymaps.lua  # Global keymaps
+│   │   ├── lazy.lua     # Plugin manager
+│   │   └── lsp/         # LSP config
+│   └── plugins/         # Plugin specs
+│       ├── colorscheme.lua
+│       └── telescope.lua
 ```
 
-## 🎨 Customization
+## Customization
 
-Each aspect of this configuration is modular and easy to customize:
+- **Add plugins**: Edit `lua/plugins/init.lua`
+- **Change theme**: Modify `lua/plugins/colorscheme.lua`
+- **LSP servers**: Update `lua/config/lsp/servers.lua`
 
-1. Add plugins in `lua/plugins/init.lua`
-2. Modify LSP settings in `lua/config/lsp/`
-3. Adjust key bindings in `lua/config/keymaps.lua`
-
-## 📝 License
+## License
 
 MIT
