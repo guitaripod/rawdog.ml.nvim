@@ -36,7 +36,7 @@ yay -S ttf-firacode-nerd  # For icons
 mv ~/.config/nvim ~/.config/nvim.bak
 
 # Clone this config
-git clone <your-repo-url> ~/.config/nvim
+git clone git@github.com:marcusziade/rawdog.ml.nvim.git ~/.config/nvim
 
 # Start Neovim (plugins auto-install)
 nvim
