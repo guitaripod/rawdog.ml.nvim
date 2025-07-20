@@ -8,7 +8,7 @@ A fast, modern Neovim setup with automatic light/dark theme switching, full LSP 
   - Light: Solarized Light (matching ghostty terminal)
   - Dark: Rose Pine (matching ghostty terminal)
 - ⚡ **Fast startup** - Lazy-loaded plugins for <50ms startup
-- 🔧 **LSP ready** - Pre-configured for Go, TypeScript, Python, and Swift
+- 🔧 **LSP ready** - Pre-configured for Go, TypeScript, Python, Swift, and Rust
 - 🔍 **Fuzzy finding** - Telescope with ripgrep integration
 - 🌳 **Smart syntax** - Treesitter with incremental selection
 - 📁 **File explorer** - nvim-tree with icons support
@@ -27,7 +27,7 @@ xcode-select --install  # Installs command line tools including Swift
 brew install --cask font-fira-code-nerd-font  # For icons
 
 # Linux (Arch)
-sudo pacman -S neovim ripgrep fd nodejs npm go
+sudo pacman -S neovim ripgrep fd nodejs npm go rust
 yay -S swift-bin  # Swift compiler and LSP
 yay -S ttf-firacode-nerd  # For icons
 ```

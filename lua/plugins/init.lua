@@ -32,6 +32,7 @@ local core_plugins = {
         "pyright",
         "sourcekit-lsp",
         "codelldb",
+        "rust-analyzer",
       },
     },
   },
@@ -53,7 +54,7 @@ local core_plugins = {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     opts = {
-      ensure_installed = { "go", "typescript", "javascript", "python", "swift", "lua" },
+      ensure_installed = { "go", "typescript", "javascript", "python", "swift", "lua", "rust" },
       auto_install = true,
       highlight = { enable = true },
       indent = { enable = true },

@@ -8,6 +8,7 @@ require("mason-lspconfig").setup({
     "gopls",
     "ts_ls",
     "pyright",
+    "rust_analyzer",
   },
   automatic_installation = true,
 })
@@ -59,4 +60,20 @@ lspconfig.pyright.setup({
 lspconfig.sourcekit.setup({
   on_attach = config.on_attach,
   capabilities = config.capabilities,
+})
+
+-- Rust
+lspconfig.rust_analyzer.setup({
+  on_attach = config.on_attach,
+  capabilities = config.capabilities,
+  settings = {
+    ["rust-analyzer"] = {
+      checkOnSave = {
+        command = "clippy",
+      },
+      cargo = {
+        allFeatures = true,
+      },
+    },
+  },
 })
