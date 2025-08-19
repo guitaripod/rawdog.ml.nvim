@@ -40,4 +40,4 @@ vim.opt.undolevels = 10000
 vim.opt.updatetime = 200
 vim.opt.wildmode = "longest:full,full"
 vim.opt.winminwidth = 5
-vim.opt.wrap = false
+vim.opt.wrap = true
