@@ -41,3 +41,4 @@ vim.opt.updatetime = 200
 vim.opt.wildmode = "longest:full,full"
 vim.opt.winminwidth = 5
 vim.opt.wrap = true
+vim.opt.linebreak = true
