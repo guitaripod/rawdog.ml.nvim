@@ -1,10 +1,5 @@
 local map = vim.keymap.set
 
--- Better window navigation
-map("n", "<C-h>", "<C-w>h", { desc = "Go to left window" })
-map("n", "<C-j>", "<C-w>j", { desc = "Go to lower window" })
-map("n", "<C-k>", "<C-w>k", { desc = "Go to upper window" })
-map("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
 
 -- LSP
 map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
