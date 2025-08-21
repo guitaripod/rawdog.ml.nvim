@@ -31,6 +31,7 @@ local core_plugins = {
         "typescript-language-server",
         "pyright",
         "sourcekit-lsp",
+        "codelldb",
       },
     },
   },
