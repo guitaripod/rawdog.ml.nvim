@@ -4,16 +4,17 @@ A fast, modern Neovim setup with automatic light/dark theme switching, full LSP 
 
 ## Features
 
-- 🌓 **Auto theme switching** - Automatically matches system light/dark mode
+- **Auto theme switching** - Automatically matches system light/dark mode
   - Light: Solarized Light (matching ghostty terminal)
   - Dark: Rose Pine (matching ghostty terminal)
-- ⚡ **Fast startup** - Lazy-loaded plugins for <50ms startup
-- 🔧 **LSP ready** - Pre-configured for Go, TypeScript, Python, Swift, and Rust
-- 🔍 **Fuzzy finding** - Telescope with ripgrep integration
-- 🌳 **Smart syntax** - Treesitter with incremental selection
-- 📁 **File explorer** - nvim-tree with icons support
-- 📊 **Time tracking** - Wakatime integration
-- 🎯 **Which-key** - Interactive keymap discovery
+- **Fast startup** - Lazy-loaded plugins for <50ms startup
+- **LSP ready** - Pre-configured for Go, TypeScript, Python, Swift, and Rust
+- **iOS/macOS Development** - xcodebuild.nvim for Xcode project integration (macOS)
+- **Fuzzy finding** - Telescope with ripgrep integration
+- **Smart syntax** - Treesitter with incremental selection
+- **File explorer** - nvim-tree with icons support
+- **Time tracking** - Wakatime integration
+- **Which-key** - Interactive keymap discovery
 
 ## Installation
 
