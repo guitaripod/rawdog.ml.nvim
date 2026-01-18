@@ -1,7 +1,5 @@
-local lspconfig = require("lspconfig")
 local config = require("config.lsp")
 
--- Ensure mason-lspconfig is loaded
 require("mason").setup()
 require("mason-lspconfig").setup({
   ensure_installed = {
@@ -13,8 +11,7 @@ require("mason-lspconfig").setup({
   automatic_installation = true,
 })
 
--- Go
-lspconfig.gopls.setup({
+vim.lsp.config('gopls', {
   on_attach = config.on_attach,
   capabilities = config.capabilities,
   cmd = {"gopls"},
@@ -30,8 +27,7 @@ lspconfig.gopls.setup({
   },
 })
 
--- TypeScript/JavaScript
-lspconfig.ts_ls.setup({
+vim.lsp.config('ts_ls', {
   on_attach = config.on_attach,
   capabilities = config.capabilities,
   init_options = {
@@ -41,8 +37,7 @@ lspconfig.ts_ls.setup({
   },
 })
 
--- Python
-lspconfig.pyright.setup({
+vim.lsp.config('pyright', {
   on_attach = config.on_attach,
   capabilities = config.capabilities,
   settings = {
@@ -56,14 +51,12 @@ lspconfig.pyright.setup({
   },
 })
 
--- Swift (using system installed sourcekit-lsp)
-lspconfig.sourcekit.setup({
+vim.lsp.config('sourcekit', {
   on_attach = config.on_attach,
   capabilities = config.capabilities,
 })
 
--- Rust
-lspconfig.rust_analyzer.setup({
+vim.lsp.config('rust_analyzer', {
   on_attach = config.on_attach,
   capabilities = config.capabilities,
   settings = {
@@ -77,3 +70,5 @@ lspconfig.rust_analyzer.setup({
     },
   },
 })
+
+vim.lsp.enable({'gopls', 'ts_ls', 'pyright', 'sourcekit', 'rust_analyzer'})
