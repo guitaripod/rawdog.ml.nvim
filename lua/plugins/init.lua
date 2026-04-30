@@ -25,16 +25,19 @@ local core_plugins = {
   {
     "williamboman/mason.nvim",
     build = ":MasonUpdate",
-    opts = {
-      ensure_installed = {
+    opts = function()
+      local tools = {
         "gopls",
         "typescript-language-server",
         "pyright",
-        "sourcekit-lsp",
-        "codelldb",
         "rust-analyzer",
-      },
-    },
+      }
+      if vim.fn.has("mac") == 1 then
+        table.insert(tools, "sourcekit-lsp")
+        table.insert(tools, "codelldb")
+      end
+      return { ensure_installed = tools }
+    end,
   },
 
   -- Completions
