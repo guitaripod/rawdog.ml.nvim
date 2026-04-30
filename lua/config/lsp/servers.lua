@@ -51,10 +51,12 @@ vim.lsp.config('pyright', {
   },
 })
 
-vim.lsp.config('sourcekit', {
-  on_attach = config.on_attach,
-  capabilities = config.capabilities,
-})
+if vim.fn.has("mac") == 1 then
+  vim.lsp.config('sourcekit', {
+    on_attach = config.on_attach,
+    capabilities = config.capabilities,
+  })
+end
 
 vim.lsp.config('rust_analyzer', {
   on_attach = config.on_attach,
@@ -71,4 +73,8 @@ vim.lsp.config('rust_analyzer', {
   },
 })
 
-vim.lsp.enable({'gopls', 'ts_ls', 'pyright', 'sourcekit', 'rust_analyzer'})
+local servers = {'gopls', 'ts_ls', 'pyright', 'rust_analyzer'}
+if vim.fn.has("mac") == 1 then
+  table.insert(servers, 'sourcekit')
+end
+vim.lsp.enable(servers)
