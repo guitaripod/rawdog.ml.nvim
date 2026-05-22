@@ -13,7 +13,6 @@ A fast, modern Neovim setup with automatic light/dark theme switching, full LSP 
 - **Fuzzy finding** - Telescope with ripgrep integration
 - **Smart syntax** - Treesitter with incremental selection
 - **File explorer** - nvim-tree with icons support
-- **Time tracking** - Wakatime integration
 - **Which-key** - Interactive keymap discovery
 
 ## Installation

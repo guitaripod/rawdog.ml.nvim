@@ -156,9 +156,6 @@ local core_plugins = {
       }
     }
   },
-
-  -- Wakatime
-  { 'wakatime/vim-wakatime', lazy = false }
 }
 
 -- Merge core plugins
