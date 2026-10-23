@@ -52,25 +52,15 @@ local core_plugins = {
     },
   },
 
-  -- Treesitter
+  -- Treesitter (main branch: explicit parser install + manual feature enable)
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
-    opts = {
-      ensure_installed = { "go", "typescript", "javascript", "python", "swift", "lua", "rust" },
-      auto_install = true,
-      highlight = { enable = true },
-      indent = { enable = true },
-      incremental_selection = {
-        enable = true,
-        keymaps = {
-          init_selection = "<C-space>",
-          node_incremental = "<C-space>",
-          scope_incremental = "<C-s>",
-          node_decremental = "<C-backspace>",
-        },
-      },
-    },
+    config = function()
+      require("config.treesitter").setup()
+    end,
   },
 
   -- Git integration

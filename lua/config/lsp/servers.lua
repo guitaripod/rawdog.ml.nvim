@@ -1,5 +1,13 @@
 local config = require("config.lsp")
 
+vim.diagnostic.config({
+  severity_sort = true,
+  underline = true,
+  update_in_insert = false,
+  virtual_text = { spacing = 2, source = "if_many", prefix = "●" },
+  float = { border = "rounded", source = true },
+})
+
 require("mason").setup()
 require("mason-lspconfig").setup({
   ensure_installed = {
@@ -54,7 +62,14 @@ vim.lsp.config('pyright', {
 if vim.fn.has("mac") == 1 then
   vim.lsp.config('sourcekit', {
     on_attach = config.on_attach,
-    capabilities = config.capabilities,
+    capabilities = vim.tbl_deep_extend("force", config.capabilities, {
+      workspace = {
+        didChangeWatchedFiles = { dynamicRegistration = true },
+      },
+      textDocument = {
+        diagnostic = { dynamicRegistration = true, relatedDocumentSupport = true },
+      },
+    }),
   })
 end
 
