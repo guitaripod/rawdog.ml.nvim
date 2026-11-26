@@ -34,7 +34,12 @@ end
 
 --- Read at most `last` lines of a file, tolerating missing files.
 function M.read_lines(path, last)
-  local ok, lines = pcall(vim.fn.readfile, path, '', last)
+  local ok, lines
+  if last then
+    ok, lines = pcall(vim.fn.readfile, path, '', last)
+  else
+    ok, lines = pcall(vim.fn.readfile, path)
+  end
   if not ok then
     return nil
   end
