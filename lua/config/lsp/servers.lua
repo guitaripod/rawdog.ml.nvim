@@ -59,19 +59,17 @@ vim.lsp.config('pyright', {
   },
 })
 
-if vim.fn.has("mac") == 1 then
-  vim.lsp.config('sourcekit', {
-    on_attach = config.on_attach,
-    capabilities = vim.tbl_deep_extend("force", config.capabilities, {
-      workspace = {
-        didChangeWatchedFiles = { dynamicRegistration = true },
-      },
-      textDocument = {
-        diagnostic = { dynamicRegistration = true, relatedDocumentSupport = true },
-      },
-    }),
-  })
-end
+vim.lsp.config('sourcekit', {
+  on_attach = config.on_attach,
+  capabilities = vim.tbl_deep_extend("force", config.capabilities, {
+    workspace = {
+      didChangeWatchedFiles = { dynamicRegistration = true },
+    },
+    textDocument = {
+      diagnostic = { dynamicRegistration = true, relatedDocumentSupport = true },
+    },
+  }),
+})
 
 vim.lsp.config('rust_analyzer', {
   on_attach = config.on_attach,
@@ -88,8 +86,5 @@ vim.lsp.config('rust_analyzer', {
   },
 })
 
-local servers = {'gopls', 'ts_ls', 'pyright', 'rust_analyzer'}
-if vim.fn.has("mac") == 1 then
-  table.insert(servers, 'sourcekit')
-end
+local servers = {'gopls', 'ts_ls', 'pyright', 'rust_analyzer', 'sourcekit'}
 vim.lsp.enable(servers)
