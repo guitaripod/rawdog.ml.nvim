@@ -1,9 +1,6 @@
 return {
   {
     "mfussenegger/nvim-dap",
-    cond = function()
-      return vim.fn.has("mac") == 1
-    end,
     dependencies = {
       "rcarriga/nvim-dap-ui",
       "nvim-neotest/nvim-nio",
@@ -14,14 +11,16 @@ return {
 
       dapui.setup()
 
-      dap.adapters.codelldb = {
-        type = "server",
-        port = "${port}",
-        executable = {
-          command = vim.fn.stdpath("data") .. "/mason/bin/codelldb",
-          args = { "--port", "${port}" },
-        },
-      }
+      if vim.fn.has("mac") == 1 then
+        dap.adapters.codelldb = {
+          type = "server",
+          port = "${port}",
+          executable = {
+            command = vim.fn.stdpath("data") .. "/mason/bin/codelldb",
+            args = { "--port", "${port}" },
+          },
+        }
+      end
 
       -- Automatically open and close dap-ui
       dap.listeners.after.event_initialized["dapui_config"] = function()
