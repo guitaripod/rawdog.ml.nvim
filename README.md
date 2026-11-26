@@ -72,6 +72,18 @@ nvim
 - `<leader>rn` - Rename symbol
 - `<leader>d` - Show diagnostic float
 
+### Swift Navigation (`swiftnav`)
+- `<leader>so` - Open Quickly: ranked symbols, files and recents with a live preview (`:SwiftOpen [query]`)
+- `<leader>sj` - Document items for the current file, like Xcode's Control-6 (`:SwiftJump`)
+- `<leader>sR` - Related items: callers, callees, overrides, conformances, supertypes, subtypes and references in one popup (`:SwiftRelated`)
+- `<leader>sS` - Reveal the current file in the project tree (`:SwiftReveal`)
+- `<leader>sb` - `swift build`, with diagnostics in the quickfix
+- `<leader>st` - `swift test`; `<leader>sT` runs the test under the cursor
+- `<leader>sr` - `swift run` in a terminal split
+- `:SwiftWarm` - Build the sourcekit-lsp index before a session on a big package
+
+The window breadcrumb (`File › Type › member`) is drawn by `swiftnav` for Swift buffers, and symbol search waits for sourcekit's index automatically, so Open Quickly fills in as the index finishes.
+
 ### Window Navigation
 - `<C-h>` - Move to left window
 - `<C-j>` - Move to lower window  
@@ -109,6 +121,17 @@ nvim
 │   │   └── lsp/         # LSP config
 │   │       ├── init.lua
 │   │       └── servers.lua
+│   ├── swiftnav/        # Xcode-style Swift navigation
+│   │   ├── init.lua     # Commands, keymaps, highlights
+│   │   ├── open.lua     # Open Quickly with ranked symbols and preview
+│   │   ├── jumpbar.lua  # Breadcrumb winbar and document items
+│   │   ├── related.lua  # Callers, callees, overrides, conformances
+│   │   ├── symbols.lua  # documentSymbol tree and enclosing-symbol lookup
+│   │   ├── index.lua    # sourcekit-lsp indexing state
+│   │   ├── rank.lua     # Xcode-style match scoring
+│   │   ├── recency.lua  # Per-symbol recency store
+│   │   ├── ui.lua       # Floating picker with preview
+│   │   └── util.lua
 │   └── plugins/         # Plugin specs
 │       ├── init.lua     # Main plugins
 │       ├── colorscheme.lua # Theme config
