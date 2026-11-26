@@ -111,6 +111,7 @@ function M.setup()
 
   vim.api.nvim_create_user_command('SwiftIndex', function()
     local indexer = require('swiftnav.indexer')
+    require('swiftnav.nav').reset_build_settings()
     indexer.rebuild()
     indexer.ensure(0, function()
       local count, root = indexer.stats()

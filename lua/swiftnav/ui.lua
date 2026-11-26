@@ -11,7 +11,7 @@ Picker.__index = Picker
 
 local function geometry(picker)
   local columns, lines = vim.o.columns, vim.o.lines
-  local available_width = math.max(20, columns - 4)
+  local available_width = math.max(20, columns - 5)
   local available_height = math.max(6, lines - 6)
   local width = util.clamp(math.floor(columns * 0.96), math.min(44, available_width), available_width)
   local height = util.clamp(math.floor(lines * 0.55), math.min(8, available_height), available_height)
@@ -20,7 +20,7 @@ local function geometry(picker)
     width = width,
     height = height,
     list_width = list_width,
-    preview_width = width - list_width - 2,
+    preview_width = width - list_width - 3,
     row = math.max(0, math.floor((lines - height - 3) / 2)),
     col = math.max(0, math.floor((columns - width) / 2)),
   }

@@ -330,7 +330,7 @@ local function render()
   if state.closed or not api.nvim_buf_is_valid(state.buf) then
     return
   end
-  local available = math.max(20, vim.o.columns - 6)
+  local available = math.max(20, vim.o.columns - 5)
   local width = util.clamp(math.floor(vim.o.columns * 0.72), math.min(40, available), available)
   local lines, rowmap, marks = {}, {}, {}
   lines[1] = '  ' .. (state.title or 'Related')
@@ -468,9 +468,9 @@ function M.open()
   local win = api.nvim_get_current_win()
   local bufnr = api.nvim_get_current_buf()
   local cursor = api.nvim_win_get_cursor(win)
-  local available = math.max(20, vim.o.columns - 6)
+  local available = math.max(20, vim.o.columns - 5)
   local width = util.clamp(math.floor(vim.o.columns * 0.72), math.min(40, available), available)
-  local vertical = math.max(6, vim.o.lines - 6)
+  local vertical = math.max(6, vim.o.lines - 5)
   local height = util.clamp(math.floor(vim.o.lines * 0.6), math.min(10, vertical), vertical)
 
   state = {

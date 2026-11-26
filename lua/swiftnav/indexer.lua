@@ -76,31 +76,70 @@ local TYPE_NODES = {
   actor_declaration = true,
 }
 
-local state = {
-  root = nil,
-  ready = false,
-  building = false,
-  waiters = {},
-  by_name = {},
-  by_path = {},
-  count = 0,
-  started = 0,
+local MODIFIERS = '(?:(?:public|private|fileprivate|internal|open|final|static|class|mutating|nonisolated|override|required|convenience|dynamic|lazy|weak|unowned|indirect|isolated|distributed|prefix|postfix|infix)[ \t]+)*'
+local ATTRIBUTES = '(?:@[A-Za-z_][A-Za-z0-9_]*(?:\\([^)]*\\))?[ \t]+)*'
+
+local TYPE_PATTERN = '^[ \t]*' .. ATTRIBUTES .. MODIFIERS
+  .. '(class|struct|enum|protocol|actor|extension|typealias)[ \t]+([A-Za-z_][A-Za-z0-9_]*)'
+local FUNCTION_PATTERN = '^[ \t]*' .. ATTRIBUTES .. MODIFIERS .. 'func[ \t]+([A-Za-z_][A-Za-z0-9_]*)'
+local PROPERTY_PATTERN = '^[ \t]{0,4}' .. ATTRIBUTES .. MODIFIERS .. '(?:let|var)[ \t]+([A-Za-z_][A-Za-z0-9_]*)'
+local CASE_PATTERN = '^[ \t]*case[ \t]+([A-Za-z_][A-Za-z0-9_]*)'
+
+local EXCLUDES = {
+  '--glob',
+  '*.swift',
+  '--glob',
+  '!**/.build/**',
+  '--glob',
+  '!**/DerivedData/**',
+  '--glob',
+  '!**/Pods/**',
+  '--glob',
+  '!**/.swiftpm/**',
+  '--glob',
+  '!**/SourcePackages/**',
 }
 
+local state
 local containers = {}
+local interned = { name = {}, path = {}, kind = {} }
 
-local function reset(root)
-  state = {
+local function intern(bucket, value)
+  local hit = bucket[value]
+  if hit then
+    return hit
+  end
+  bucket[value] = value
+  return value
+end
+
+local function new_state(root)
+  return {
     root = root,
     ready = false,
     building = false,
     waiters = {},
     by_name = {},
     by_path = {},
+    mtimes = {},
     count = 0,
-    started = 0,
+    save_timer = nil,
+    reconcile_timer = nil,
+    cache_loaded = false,
   }
+end
+
+state = new_state(nil)
+
+local function reset(root)
+  state = new_state(root)
   containers = {}
+  interned = { name = {}, path = {}, kind = {} }
+end
+
+local function cache_path(root)
+  local hash = vim.fn.sha256(root):sub(1, 16)
+  return vim.fn.stdpath('cache') .. '/swiftnav/' .. hash .. '.json'
 end
 
 --- Find the repository or package that owns a buffer.
@@ -160,6 +199,9 @@ local function classify(text)
 end
 
 local function add_entry(entry)
+  entry.name = intern(interned.name, entry.name)
+  entry.path = intern(interned.path, entry.path)
+  entry.kind = intern(interned.kind, entry.kind)
   local names = state.by_name[entry.name]
   if not names then
     names = {}
@@ -203,85 +245,222 @@ local function index_text(path, text)
     lnum = lnum + 1
     local kind, name, col = classify(line)
     if kind and name then
-      add_entry({
-        name = name,
-        kind = kind,
-        path = path,
-        lnum = lnum,
-        col = col,
-      })
+      local indented = #(line:match('^[ \t]*') or '')
+      if kind ~= 'Property' or indented <= 4 then
+        add_entry({
+          name = name,
+          kind = kind,
+          path = path,
+          lnum = lnum,
+          col = col,
+        })
+      end
     end
   end
 end
 
-local DECLARATION = [[^[ \t]*(?:@[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?[ \t]+)*(?:(?:public|private|fileprivate|internal|open|final|static|class|mutating|nonisolated|override|required|convenience|dynamic|lazy|weak|unowned|indirect|isolated|distributed|prefix|postfix|infix)[ \t]+)*(?:class|struct|enum|protocol|actor|extension|typealias|func|let|var)[ \t]+[A-Za-z_][A-Za-z0-9_]*]]
-local CASE = [[^[ \t]*case[ \t]+[A-Za-z_][A-Za-z0-9_]*]]
-
-local function scan_command()
-  return {
-    'rg',
-    '--line-number',
-    '--no-heading',
-    '--with-filename',
-    '--color',
-    'never',
-    '-e',
-    DECLARATION,
-    '-e',
-    CASE,
-    '--glob',
-    '*.swift',
-    '--glob',
-    '!**/.build/**',
-    '--glob',
-    '!**/DerivedData/**',
-    '--glob',
-    '!**/Pods/**',
-    '--glob',
-    '!**/.swiftpm/**',
-    '--glob',
-    '!**/SourcePackages/**',
-  }
+local function schedule_save()
+  if state.save_timer then
+    return
+  end
+  state.save_timer = vim.defer_fn(function()
+    state.save_timer = nil
+    M.save()
+  end, 2000)
 end
 
 local function finish()
-  state.building = false
+  if state.building then
+    state.building = false
+  end
   state.ready = true
   local waiters = state.waiters
   state.waiters = {}
   for _, waiter in ipairs(waiters) do
     pcall(waiter, true)
   end
+  schedule_save()
 end
 
-local function start(notify)
-  state.building = true
-  state.started = vim.uv.hrtime()
-  if notify then
-    util.notify('indexing Swift declarations in ' .. vim.fs.basename(state.root))
+local function rg_command(pattern, replace)
+  local command = {
+    'rg',
+    '--line-number',
+    '--no-heading',
+    '--with-filename',
+    '--color',
+    'never',
+    '-o',
+    '-r',
+    replace,
+    pattern,
+  }
+  vim.list_extend(command, EXCLUDES)
+  return command
+end
+
+local function split_lines(text)
+  return vim.split(text or '', '\n', { trimempty = true })
+end
+
+local function parse_type_line(line)
+  local path, lnum, payload = line:match('^(.-):(%d+):(.*)$')
+  if not path then
+    return
   end
-  vim.system(scan_command(), { cwd = state.root, text = true }, function(object)
+  local keyword, name = payload:match('^(%a+)|(.+)$')
+  if keyword and name then
+    add_entry({
+      name = name,
+      kind = TYPE_KEYWORDS[keyword] or 'Class',
+      path = path:sub(1, 1) == '/' and path or (state.root .. '/' .. path),
+      lnum = tonumber(lnum),
+    })
+  end
+end
+
+local function parse_named_line(line, kind)
+  local path, lnum, name = line:match('^(.-):(%d+):(.*)$')
+  if not path or name == '' then
+    return
+  end
+  add_entry({
+    name = name,
+    kind = kind,
+    path = path:sub(1, 1) == '/' and path or (state.root .. '/' .. path),
+    lnum = tonumber(lnum),
+  })
+end
+
+local function build(notify)
+  local root = state.root
+  local waiters = state.waiters
+  reset(root)
+  state.waiters = waiters
+  state.building = true
+  if notify then
+    util.notify('indexing Swift declarations in ' .. vim.fs.basename(root))
+  end
+
+  vim.system({ 'rg', '--files', unpack(EXCLUDES) }, { cwd = root, text = true }, function(files)
     vim.schedule(function()
-      local output = object.stdout or ''
-      for line in output:gmatch('[^\n]+') do
-        local path, lnum, text = line:match('^(.-):(%d+):(.*)$')
-        if path then
-          local absolute = path:sub(1, 1) == '/' and path or (state.root .. '/' .. path)
-          local kind, name, col = classify(text)
-          if kind and name then
-            add_entry({
-              name = name,
-              kind = kind,
-              path = absolute,
-              lnum = tonumber(lnum),
-              col = col,
-            })
-          end
+      if state.root ~= root then
+        return
+      end
+      for _, relative in ipairs(split_lines(files.stdout)) do
+        local path = root .. '/' .. relative
+        local stat = vim.uv.fs_stat(path)
+        state.mtimes[path] = stat and stat.mtime.sec or 0
+      end
+
+      local outputs = {}
+      local remaining = 4
+      local pump
+      local function collect(key)
+        return function(object)
+          vim.schedule(function()
+            outputs[key] = object.stdout or ''
+            remaining = remaining - 1
+            if remaining == 0 then
+              pump(outputs)
+            end
+          end)
         end
       end
-      finish()
+
+      pump = function(batch)
+        local queues = {
+          { lines = split_lines(batch.types), parse = parse_type_line },
+          { lines = split_lines(batch.functions), parse = function(line)
+            parse_named_line(line, 'Function')
+          end },
+          { lines = split_lines(batch.properties), parse = function(line)
+            parse_named_line(line, 'Property')
+          end },
+          { lines = split_lines(batch.cases), parse = function(line)
+            parse_named_line(line, 'Constant')
+          end },
+        }
+        local queue_index, line_index = 1, 1
+        local function step()
+          if state.root ~= root then
+            return
+          end
+          local budget = 6000
+          while budget > 0 do
+            local queue = queues[queue_index]
+            if not queue then
+              finish()
+              return
+            end
+            local line = queue.lines[line_index]
+            if line then
+              queue.parse(line)
+              line_index = line_index + 1
+              budget = budget - 1
+            else
+              queue_index = queue_index + 1
+              line_index = 1
+            end
+          end
+          vim.defer_fn(step, 4)
+        end
+        step()
+      end
+
+      vim.system(rg_command(TYPE_PATTERN, '$1|$2'), { cwd = root, text = true }, collect('types'))
+      vim.system(rg_command(FUNCTION_PATTERN, '$1'), { cwd = root, text = true }, collect('functions'))
+      vim.system(rg_command(PROPERTY_PATTERN, '$1'), { cwd = root, text = true }, collect('properties'))
+      vim.system(rg_command(CASE_PATTERN, '$1'), { cwd = root, text = true }, collect('cases'))
     end)
   end)
+end
+
+local function schedule_reconcile(root)
+  if state.reconcile_timer then
+    return
+  end
+  state.reconcile_timer = vim.defer_fn(function()
+    state.reconcile_timer = nil
+    if state.root == root and state.ready then
+      M.reconcile()
+    end
+  end, 600)
+end
+
+local function load_cache(root)
+  local file = io.open(cache_path(root), 'rb')
+  if not file then
+    return false
+  end
+  local data = file:read('*a')
+  file:close()
+  local ok, payload = pcall(vim.json.decode, data)
+  if not ok or type(payload) ~= 'table' or payload.version ~= 3 then
+    return false
+  end
+  state = new_state(root)
+  containers = {}
+  for _, item in ipairs(payload.files or {}) do
+    if type(item) == 'table' and item[1] then
+      state.mtimes[item[1]] = item[2]
+    end
+  end
+  for _, item in ipairs(payload.entries or {}) do
+    if type(item) == 'table' and item[2] then
+      add_entry({
+        kind = item[1],
+        name = item[2],
+        path = item[3],
+        lnum = item[4],
+        col = item[5] and item[5] >= 0 and item[5] or nil,
+      })
+    end
+  end
+  state.ready = true
+  state.cache_loaded = true
+  schedule_reconcile(root)
+  return true
 end
 
 --- Build or reuse the project index and run a callback when it is ready.
@@ -289,6 +468,10 @@ function M.ensure(bufnr, callback, notify)
   local root = M.root(bufnr)
   if state.root ~= root then
     reset(root)
+    if load_cache(root) then
+      callback(true)
+      return
+    end
   end
   if state.ready then
     callback(true)
@@ -302,7 +485,7 @@ function M.ensure(bufnr, callback, notify)
     return
   end
   state.waiters[#state.waiters + 1] = callback
-  start(notify)
+  build(notify)
 end
 
 function M.ready()
@@ -317,14 +500,6 @@ function M.stats()
   return state.count, state.root
 end
 
-function M.rebuild()
-  local root = state.root
-  state.root = nil
-  if root then
-    reset(root)
-  end
-end
-
 --- Re-index one file after a write.
 function M.update_file(path)
   if not state.ready or not state.root then
@@ -336,13 +511,131 @@ function M.update_file(path)
   containers[path] = nil
   remove_path(path)
   local lines = util.read_lines(path)
-  if not lines then
-    return
+  if lines then
+    index_text(path, table.concat(lines, '\n'))
   end
-  index_text(path, table.concat(lines, '\n'))
+  local stat = vim.uv.fs_stat(path)
+  state.mtimes[path] = stat and stat.mtime.sec or 0
+  schedule_save()
 end
 
-local function parse_file(path)
+--- Compare the cached file list against the working tree and patch changes.
+function M.reconcile()
+  local root = state.root
+  if not root or not state.ready then
+    return
+  end
+  local command = { 'rg', '--files' }
+  vim.list_extend(command, EXCLUDES)
+  vim.system(command, { cwd = root, text = true }, function(object)
+    vim.schedule(function()
+      if state.root ~= root then
+        return
+      end
+      local seen, changed = {}, {}
+      for _, relative in ipairs(split_lines(object.stdout)) do
+        local path = root .. '/' .. relative
+        seen[path] = true
+        local stat = vim.uv.fs_stat(path)
+        local mtime = stat and stat.mtime.sec or 0
+        if state.mtimes[path] ~= mtime then
+          changed[#changed + 1] = path
+        end
+      end
+      local deleted = {}
+      for path in pairs(state.mtimes) do
+        if not seen[path] then
+          deleted[#deleted + 1] = path
+        end
+      end
+      for _, path in ipairs(deleted) do
+        remove_path(path)
+        state.mtimes[path] = nil
+      end
+      if #changed > 80 then
+        build(false)
+        return
+      end
+      for _, path in ipairs(changed) do
+        remove_path(path)
+        local lines = util.read_lines(path)
+        if lines then
+          index_text(path, table.concat(lines, '\n'))
+        end
+        local stat = vim.uv.fs_stat(path)
+        state.mtimes[path] = stat and stat.mtime.sec or 0
+      end
+      if #changed > 0 or #deleted > 0 then
+        schedule_save()
+      end
+    end)
+  end)
+end
+
+function M.save()
+  local root = state.root
+  if not root or not state.ready or state.count == 0 then
+    return
+  end
+  local files = {}
+  for path, mtime in pairs(state.mtimes) do
+    files[#files + 1] = { path, mtime }
+  end
+  local entries = {}
+  for _, items in pairs(state.by_path) do
+    for _, entry in ipairs(items) do
+      entries[#entries + 1] = { entry.kind, entry.name, entry.path, entry.lnum, entry.col or -1 }
+    end
+  end
+  local ok, payload = pcall(vim.json.encode, {
+    version = 3,
+    root = root,
+    files = files,
+    entries = entries,
+  })
+  if not ok then
+    return
+  end
+  local path = cache_path(root)
+  vim.fn.mkdir(vim.fs.dirname(path), 'p')
+  local file = io.open(path, 'wb')
+  if not file then
+    return
+  end
+  file:write(payload)
+  file:close()
+end
+
+--- Forget the index and its cache, so the next request rebuilds it.
+function M.rebuild()
+  local root = state.root
+  if root then
+    pcall(vim.fn.delete, cache_path(root))
+  end
+  reset(root)
+end
+
+local parse_file
+
+--- The type that encloses one line of a file.
+function M.container_of(path, lnum)
+  local intervals = parse_file(path)
+  if not intervals then
+    return nil
+  end
+  local row = lnum - 1
+  local best
+  for _, interval in ipairs(intervals) do
+    if interval.start_row <= row and row <= interval.end_row then
+      if not best or (interval.end_row - interval.start_row) < (best.end_row - best.start_row) then
+        best = interval
+      end
+    end
+  end
+  return best and best.name or nil
+end
+
+parse_file = function(path)
   local cached = containers[path]
   if cached then
     return cached
@@ -376,24 +669,6 @@ local function parse_file(path)
   walk(parsed:root())
   containers[path] = intervals
   return intervals
-end
-
---- The type that encloses one line of a file.
-function M.container_of(path, lnum)
-  local intervals = parse_file(path)
-  if not intervals then
-    return nil
-  end
-  local row = lnum - 1
-  local best
-  for _, interval in ipairs(intervals) do
-    if interval.start_row <= row and row <= interval.end_row then
-      if not best or (interval.end_row - interval.start_row) < (best.end_row - best.start_row) then
-        best = interval
-      end
-    end
-  end
-  return best and best.name or nil
 end
 
 --- The type that encloses a position in a buffer.
@@ -476,9 +751,9 @@ function M.definition_candidates(name, bufnr)
     end
     local entry = candidate.entry
     local container = nil
-    if index <= 40 then
+    if ctx.container and index <= 12 then
       container = M.container_of(entry.path, entry.lnum)
-      if ctx.container and container == ctx.container then
+      if container == ctx.container then
         candidate.points = candidate.points + 300
       end
     end
@@ -503,6 +778,17 @@ function M.setup()
     pattern = '*.swift',
     callback = function(event)
       M.update_file(api.nvim_buf_get_name(event.buf))
+    end,
+  })
+  vim.api.nvim_create_autocmd('VimLeavePre', {
+    callback = function()
+      if state.save_timer then
+        pcall(function()
+          state.save_timer:stop()
+        end)
+        state.save_timer = nil
+      end
+      M.save()
     end,
   })
 end

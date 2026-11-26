@@ -80,7 +80,7 @@ nvim
 - `gd` / `gD` - Definition, with a project index fallback when sourcekit has no build settings
 - `gy` - Type definition; `gi` - implementations; `gr` - references (falls back to a project search)
 - `K` - Hover, with the declaration as a fallback; `gO` - Document items; `<C-]>` - Jump to definition
-- `:SwiftIndex` - Rebuild the Swift declaration index by hand
+- `:SwiftIndex` - Rebuild the Swift declaration index by hand (it is cached and patched incrementally)
 - `<leader>sb` - `swift build`, with diagnostics in the quickfix
 - `<leader>st` - `swift test`; `<leader>sT` runs the test under the cursor
 - `<leader>sr` - `swift run` in a terminal split

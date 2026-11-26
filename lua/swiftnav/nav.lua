@@ -7,6 +7,44 @@ local ui = require('swiftnav.ui')
 local M = {}
 
 local MAX_REFERENCES = 500
+local build_settings = {}
+
+local function has_build_settings(bufnr)
+  local name = api.nvim_buf_get_name(bufnr)
+  if name == '' then
+    return true
+  end
+  local dir = vim.fs.dirname(name)
+  local cached = build_settings[dir]
+  if cached and os.time() - cached.at < 60 then
+    return cached.value
+  end
+  local git = vim.fs.find('.git', { path = dir, upward = true })[1]
+  local root = git and vim.fs.dirname(git) or dir
+  local function inside(path)
+    return vim.startswith(vim.fs.dirname(path), root)
+  end
+  local found = false
+  for _, marker in ipairs({ 'buildServer.json', 'compile_commands.json', '.bsp' }) do
+    local hit = vim.fs.find(marker, { path = dir, upward = true })[1]
+    if hit and inside(hit) then
+      found = true
+      break
+    end
+  end
+  if not found then
+    local package = vim.fs.find('Package.swift', { path = dir, upward = true })[1]
+    if package and inside(package) then
+      found = true
+    end
+  end
+  build_settings[dir] = { value = found, at = os.time() }
+  return found
+end
+
+function M.reset_build_settings()
+  build_settings = {}
+end
 
 local function line_at(path, lnum)
   local bufnr = vim.fn.bufnr(path)
@@ -182,16 +220,19 @@ end
 --- Go to definition, preferring sourcekit-lsp and falling back to the index.
 function M.definition()
   local bufnr = api.nvim_get_current_buf()
-  local handled = lsp_locations(bufnr, 'textDocument/definition', nil, function(locations)
-    if #locations > 0 and not self_only(locations, bufnr) then
-      show_locations(locations, 'Definition', word_under_cursor())
-    else
-      fallback_definition(bufnr)
+  if has_build_settings(bufnr) then
+    local handled = lsp_locations(bufnr, 'textDocument/definition', nil, function(locations)
+      if #locations > 0 and not self_only(locations, bufnr) then
+        show_locations(locations, 'Definition', word_under_cursor())
+      else
+        fallback_definition(bufnr)
+      end
+    end)
+    if handled then
+      return
     end
-  end)
-  if not handled then
-    fallback_definition(bufnr)
   end
+  fallback_definition(bufnr)
 end
 
 M.declaration = M.definition
@@ -241,32 +282,38 @@ end
 function M.type_definition()
   local bufnr = api.nvim_get_current_buf()
   local word = word_under_cursor()
-  local handled = lsp_locations(bufnr, 'textDocument/typeDefinition', nil, function(locations)
-    if #locations > 0 then
-      show_locations(locations, 'Type definition', word)
-    else
-      fallback_type_definition(bufnr, word)
+  if has_build_settings(bufnr) then
+    local handled = lsp_locations(bufnr, 'textDocument/typeDefinition', nil, function(locations)
+      if #locations > 0 then
+        show_locations(locations, 'Type definition', word)
+      else
+        fallback_type_definition(bufnr, word)
+      end
+    end)
+    if handled then
+      return
     end
-  end)
-  if not handled then
-    fallback_type_definition(bufnr, word)
   end
+  fallback_type_definition(bufnr, word)
 end
 
 --- Find implementations or overrides.
 function M.implementation()
   local bufnr = api.nvim_get_current_buf()
   local word = word_under_cursor()
-  local handled = lsp_locations(bufnr, 'textDocument/implementation', nil, function(locations)
-    if #locations > 0 then
-      show_locations(locations, 'Implementations', word)
-    else
-      fallback_implementation(bufnr, word)
+  if has_build_settings(bufnr) then
+    local handled = lsp_locations(bufnr, 'textDocument/implementation', nil, function(locations)
+      if #locations > 0 then
+        show_locations(locations, 'Implementations', word)
+      else
+        fallback_implementation(bufnr, word)
+      end
+    end)
+    if handled then
+      return
     end
-  end)
-  if not handled then
-    fallback_implementation(bufnr, word)
   end
+  fallback_implementation(bufnr, word)
 end
 
 local function fallback_references(bufnr, word, on_done)
@@ -338,6 +385,10 @@ end
 --- Hover with a declaration fallback when the language server has no answer.
 function M.hover()
   local bufnr = api.nvim_get_current_buf()
+  if not has_build_settings(bufnr) then
+    fallback_hover(bufnr)
+    return
+  end
   local supported = false
   for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
     if client:supports_method('textDocument/hover', bufnr) then
@@ -381,22 +432,7 @@ function M.references()
   if word == '' then
     return
   end
-  local params = vim.lsp.util.make_position_params(0, 'utf-16')
-  params.context = { includeDeclaration = false }
-  local handled = lsp_locations(bufnr, 'textDocument/references', params, function(locations)
-    if #locations > 0 then
-      show_locations(locations, 'References', word)
-      return
-    end
-    fallback_references(bufnr, word, function(items)
-      if #items == 0 then
-        util.notify('no references to ' .. word, vim.log.levels.WARN)
-        return
-      end
-      present(items, 'References', word, { preview = false })
-    end)
-  end)
-  if not handled then
+  local function search()
     fallback_references(bufnr, word, function(items)
       if #items == 0 then
         util.notify('no references to ' .. word, vim.log.levels.WARN)
@@ -405,6 +441,21 @@ function M.references()
       present(items, 'References', word, { preview = false })
     end)
   end
+  if has_build_settings(bufnr) then
+    local params = vim.lsp.util.make_position_params(0, 'utf-16')
+    params.context = { includeDeclaration = false }
+    local handled = lsp_locations(bufnr, 'textDocument/references', params, function(locations)
+      if #locations > 0 then
+        show_locations(locations, 'References', word)
+      else
+        search()
+      end
+    end)
+    if handled then
+      return
+    end
+  end
+  search()
 end
 
 return M
