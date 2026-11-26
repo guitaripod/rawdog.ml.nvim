@@ -73,6 +73,8 @@ nvim
 - `<leader>d` - Show diagnostic float
 
 ### Swift Navigation (`swiftnav`)
+Provided by [`guitaripod/swiftnav.nvim`](https://github.com/guitaripod/swiftnav.nvim), installed as a plugin.
+
 - `<leader>so` - Open Quickly: ranked symbols, files and recents with a live preview (`:SwiftOpen [query]`)
 - `<leader>sj` - Document items for the current file, like Xcode's Control-6 (`:SwiftJump`)
 - `<leader>sR` - Related items: callers, callees, overrides, conformances, supertypes, subtypes and references in one popup (`:SwiftRelated`)
@@ -125,20 +127,10 @@ The window breadcrumb (`File › Type › member`) is drawn by `swiftnav` for Sw
 │   │   └── lsp/         # LSP config
 │   │       ├── init.lua
 │   │       └── servers.lua
-│   ├── swiftnav/        # Xcode-style Swift navigation
-│   │   ├── init.lua     # Commands, keymaps, highlights
-│   │   ├── open.lua     # Open Quickly with ranked symbols and preview
-│   │   ├── jumpbar.lua  # Breadcrumb winbar and document items
-│   │   ├── related.lua  # Callers, callees, overrides, conformances
-│   │   ├── symbols.lua  # documentSymbol tree and enclosing-symbol lookup
-│   │   ├── index.lua    # sourcekit-lsp indexing state
-│   │   ├── rank.lua     # Xcode-style match scoring
-│   │   ├── recency.lua  # Per-symbol recency store
-│   │   ├── ui.lua       # Floating picker with preview
-│   │   └── util.lua
 │   └── plugins/         # Plugin specs
 │       ├── init.lua     # Main plugins
 │       ├── colorscheme.lua # Theme config
+│       ├── swiftnav.lua # Swift navigation plugin spec
 │       └── telescope.lua   # Telescope config
 ```
 
