@@ -70,13 +70,16 @@ local RESERVED = {
   ['false'] = true,
 }
 
+--- Bump when the extraction rules change, so stale caches are discarded.
+local INDEX_VERSION = 4
+
 local TYPE_NODES = {
   class_declaration = true,
   protocol_declaration = true,
   actor_declaration = true,
 }
 
-local MODIFIERS = '(?:(?:public|private|fileprivate|internal|open|final|static|class|mutating|nonisolated|override|required|convenience|dynamic|lazy|weak|unowned|indirect|isolated|distributed|prefix|postfix|infix)[ \t]+)*'
+local MODIFIERS = [[(?:[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?[ \t]+)*]]
 local ATTRIBUTES = '(?:@[A-Za-z_][A-Za-z0-9_]*(?:\\([^)]*\\))?[ \t]+)*'
 
 local TYPE_PATTERN = '^[ \t]*' .. ATTRIBUTES .. MODIFIERS
@@ -436,7 +439,7 @@ local function load_cache(root)
   local data = file:read('*a')
   file:close()
   local ok, payload = pcall(vim.json.decode, data)
-  if not ok or type(payload) ~= 'table' or payload.version ~= 3 then
+  if not ok or type(payload) ~= 'table' or payload.version ~= INDEX_VERSION then
     return false
   end
   state = new_state(root)
@@ -588,7 +591,7 @@ function M.save()
     end
   end
   local ok, payload = pcall(vim.json.encode, {
-    version = 3,
+    version = INDEX_VERSION,
     root = root,
     files = files,
     entries = entries,
