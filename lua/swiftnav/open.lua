@@ -111,13 +111,16 @@ end
 
 local function format(item, width)
   local mark, group = glyph.get(item.kind)
-  local label
-  if item.kind == 'File' or item.container == nil or item.container == '' then
-    label = item.name
+  local label = item.name
+  local location
+  if item.kind == 'File' then
+    location = item.container or ''
+    if location == '.' then
+      location = ''
+    end
   else
-    label = item.container .. '.' .. item.name
+    location = string.format('%s:%d', util.basename(item.path), item.lnum or 1)
   end
-  local location = string.format('%s:%d', util.relpath(item.path), item.lnum or 1)
   local left = mark .. ' ' .. label
   local available = width - vim.fn.strdisplaywidth(location) - 1
   if vim.fn.strdisplaywidth(left) > available then
@@ -126,14 +129,54 @@ local function format(item, width)
   local space = math.max(1, width - vim.fn.strdisplaywidth(left) - vim.fn.strdisplaywidth(location))
   local text = left .. string.rep(' ', space) .. location
 
-  local container_length = (item.kind ~= 'File' and item.container and item.container ~= '') and (#item.container + 1) or 0
-  local name_start = #mark + 1
   local marks = {
     { 0, #mark, group },
-    { name_start, name_start + container_length, 'SwiftNavContainer' },
-    { name_start + container_length, name_start + container_length + #item.name, 'SwiftNavName' },
+    { #mark + 1, #mark + 1 + #item.name, 'SwiftNavName' },
   }
+  if #location > 0 then
+    marks[#marks + 1] = { #text - #location, #text, 'SwiftNavPath' }
+  end
   return text, marks
+end
+
+--- Split a source line into display rows that fit the preview width.
+local function wrap_for_width(lines, width)
+  local display, first_rows, continuation = {}, {}, {}
+  for index, line in ipairs(lines) do
+    local indent = line:match('^%s*') or ''
+    local pad = string.rep(' ', math.min(#indent + 2, 12))
+    local rest = line
+    local first = true
+    first_rows[index] = #display + 1
+    while #rest > width do
+      local head = rest:sub(1, width)
+      local break_at = head:match('.*() ')
+      local chunk
+      if break_at and break_at > math.floor(width * 0.55) then
+        local tail = rest:sub(break_at + 1):gsub('^%s+', '')
+        if #tail <= 2 and tail:match('^[^%w%s]+$') then
+          local earlier = head:sub(1, break_at - 1):match('.*() ')
+          break_at = earlier or break_at
+        end
+        chunk = rest:sub(1, break_at - 1)
+        rest = rest:sub(break_at + 1)
+      else
+        chunk = head
+        rest = rest:sub(width + 1)
+      end
+      if not first then
+        continuation[#display + 1] = true
+      end
+      display[#display + 1] = first and chunk or (pad .. chunk)
+      first = false
+      rest = rest:gsub('^%s+', '')
+    end
+    if not first then
+      continuation[#display + 1] = true
+    end
+    display[#display + 1] = first and rest or (pad .. rest)
+  end
+  return display, first_rows, continuation
 end
 
 --- Render a file preview centered on a symbol, used by every Swift list.
@@ -141,7 +184,9 @@ function M.preview(item, buf, win)
   if not item or not item.path then
     return
   end
-  local lines = util.read_lines(item.path, (item.lnum or 1) + 120) or {}
+  local source = util.read_lines(item.path, (item.lnum or 1) + 120) or {}
+  local width = math.max(20, api.nvim_win_get_width(win) - 2)
+  local lines, first_rows, continuation = wrap_for_width(source, width)
   api.nvim_set_option_value('modifiable', true, { buf = buf })
   api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   api.nvim_set_option_value('modifiable', false, { buf = buf })
@@ -149,17 +194,22 @@ function M.preview(item, buf, win)
     vim.b[buf].swiftnav_treesitter = true
     pcall(vim.treesitter.start, buf, 'swift')
   end
-  local row = math.min(item.lnum or 1, math.max(#lines, 1))
-  local column = item.range and item.range.start.character or 0
-  pcall(api.nvim_win_set_cursor, win, { row, column })
+  local row = math.min(first_rows[item.lnum or 1] or 1, math.max(#lines, 1))
+  local height = api.nvim_win_get_height(win)
+  local target = math.max(1, math.floor(height * 0.55))
+  local topline = math.max(1, row - target + 1)
+  while continuation[topline] and topline > 1 do
+    topline = topline - 1
+  end
+  pcall(api.nvim_win_set_cursor, win, { row, 0 })
   pcall(api.nvim_win_call, win, function()
-    vim.cmd('normal! zz')
+    vim.fn.winrestview({ topline = math.min(topline, math.max(#lines, 1)) })
   end)
   api.nvim_buf_clear_namespace(buf, preview_namespace, 0, -1)
-  local width = #(lines[row] or '')
-  if width > 0 then
+  local line_width = #(lines[row] or '')
+  if line_width > 0 then
     api.nvim_buf_set_extmark(buf, preview_namespace, row - 1, 0, {
-      end_col = width,
+      end_col = line_width,
       hl_group = 'SwiftNavPreviewLine',
       priority = 150,
     })
@@ -201,13 +251,19 @@ function M.open(opts)
   local picker
 
   local function candidates()
-    local pool = {}
-    vim.list_extend(pool, state.symbols)
-    vim.list_extend(pool, state.recents)
-    vim.list_extend(pool, state.files)
-    for _, item in ipairs(pool) do
-      item.recency = math.max(recency.get(item), item.seed or 0)
-      item.current_file = item.path == current_path
+    local pool, seen_files = {}, {}
+    for _, source in ipairs({ state.symbols, state.recents, state.files }) do
+      for _, item in ipairs(source) do
+        local duplicate = item.kind == 'File' and seen_files[item.path]
+        if not duplicate then
+          if item.kind == 'File' then
+            seen_files[item.path] = true
+          end
+          item.recency = math.max(recency.get(item), item.seed or 0)
+          item.current_file = item.path == current_path
+          pool[#pool + 1] = item
+        end
+      end
     end
     return pool
   end
@@ -293,7 +349,7 @@ function M.open(opts)
   picker = ui.open({
     title = 'Open Quickly',
     list_title = 'Symbols and files',
-    hints = '<CR> open · <C-v>/<C-x>/<C-t> splits · Tab next',
+    hints = '<CR> open · <C-v> <C-x> <C-t> splits',
     preview_item = M.preview,
     format = format,
     prefill = opts.prefill,

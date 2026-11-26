@@ -13,9 +13,9 @@ local function geometry(picker)
   local columns, lines = vim.o.columns, vim.o.lines
   local available_width = math.max(20, columns - 4)
   local available_height = math.max(6, lines - 6)
-  local width = util.clamp(math.floor(columns * 0.9), math.min(44, available_width), available_width)
+  local width = util.clamp(math.floor(columns * 0.96), math.min(44, available_width), available_width)
   local height = util.clamp(math.floor(lines * 0.55), math.min(8, available_height), available_height)
-  local list_width = picker.preview and math.floor(width * 0.56) or width
+  local list_width = picker.preview and math.floor(width * 0.48) or width
   return {
     width = width,
     height = height,
