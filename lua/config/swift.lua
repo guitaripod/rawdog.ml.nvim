@@ -3,7 +3,6 @@ local M = {}
 local api = vim.api
 
 local EFM = table.concat({
-  [=[✘ Test "%*[^"]" recorded an issue at %f:%l:%c: %m]=],
   [=[%f:%l:%c: %t%*[^:]: %m]=],
   [=[%f:%l: %t%*[^:]: %m]=],
   [=[%-G%.%#]=],
@@ -23,7 +22,18 @@ local function strip_ansi(text)
   return (text:gsub("\27%[[%d;]*m", ""))
 end
 
+local function find_source(root, name)
+  for _, dir in ipairs({ "Tests", "Sources", "Plugins" }) do
+    local hit = vim.fs.find(name, { path = root .. "/" .. dir, type = "file" })[1]
+    if hit then
+      return hit
+    end
+  end
+  return vim.fs.find(name, { path = root, type = "file" })[1]
+end
+
 local function resolve_files(lines, root)
+  local cache = {}
   for i, line in ipairs(lines) do
     local prefix, file, tail = line:match("^(.-)([%w_%-%.]+%.swift):(%d+:%d+: .*)$")
     local path = prefix and (prefix .. file)
@@ -32,7 +42,10 @@ local function resolve_files(lines, root)
       if prefix:match("^[%w_%-%./]*$") and vim.uv.fs_stat(root .. "/" .. path) then
         abs = root .. "/" .. path
       else
-        abs = vim.fs.find(file, { path = root, type = "file" })[1]
+        if cache[file] == nil then
+          cache[file] = find_source(root, file) or false
+        end
+        abs = cache[file] or nil
       end
       if abs then
         local path_like = prefix:match("^[%w_%-%./]*$") ~= nil
@@ -47,8 +60,21 @@ local function resolve_files(lines, root)
   return lines
 end
 
+local function normalize_tests(lines)
+  for i, line in ipairs(lines) do
+    local label, file, lnum, col, msg = line:match(
+      "^(.-) recorded an issue.*at ([%w_%-%./]+%.swift):(%d+):(%d+): (.*)$"
+    )
+    if file then
+      label = label:gsub("^✘ Test ", ""):gsub('^"(.*)"$', "%1")
+      lines[i] = ("%s:%s:%s: error: %s: %s"):format(file, lnum, col, label, msg)
+    end
+  end
+  return lines
+end
+
 local function set_quickfix(lines, root, title)
-  vim.fn.setqflist({}, " ", { lines = resolve_files(lines, root), efm = EFM, title = title })
+  vim.fn.setqflist({}, " ", { lines = resolve_files(normalize_tests(lines), root), efm = EFM, title = title })
   return #vim.fn.getqflist()
 end
 
