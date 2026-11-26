@@ -77,6 +77,10 @@ nvim
 - `<leader>sj` - Document items for the current file, like Xcode's Control-6 (`:SwiftJump`)
 - `<leader>sR` - Related items: callers, callees, overrides, conformances, supertypes, subtypes and references in one popup (`:SwiftRelated`)
 - `<leader>sS` - Reveal the current file in the project tree (`:SwiftReveal`)
+- `gd` / `gD` - Definition, with a project index fallback when sourcekit has no build settings
+- `gy` - Type definition; `gi` - implementations; `gr` - references (falls back to a project search)
+- `K` - Hover, with the declaration as a fallback; `gO` - Document items; `<C-]>` - Jump to definition
+- `:SwiftIndex` - Rebuild the Swift declaration index by hand
 - `<leader>sb` - `swift build`, with diagnostics in the quickfix
 - `<leader>st` - `swift test`; `<leader>sT` runs the test under the cursor
 - `<leader>sr` - `swift run` in a terminal split

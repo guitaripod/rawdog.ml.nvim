@@ -226,7 +226,7 @@ local function jump(item, action, on_open)
     local command = action == 'vsplit' and 'vsplit' or (action == 'split' and 'split' or 'tabedit')
     vim.cmd(command .. ' ' .. vim.fn.fnameescape(item.path))
   end
-  vim.lsp.util.show_document(location, 'utf-16', { focus = true })
+  vim.lsp.util.show_document(location, item.encoding or 'utf-16', { focus = true })
   if on_open then
     on_open(item)
   end

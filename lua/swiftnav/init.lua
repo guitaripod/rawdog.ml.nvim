@@ -37,11 +37,41 @@ end
 function M.setup()
   highlights()
   require('swiftnav.index').setup()
+  require('swiftnav.indexer').setup()
 
   vim.api.nvim_create_autocmd('FileType', {
     pattern = 'swift',
     callback = function(event)
-      require('swiftnav.jumpbar').attach(event.buf)
+      local bufnr = event.buf
+      require('swiftnav.jumpbar').attach(bufnr)
+
+      local nav = require('swiftnav.nav')
+      local function map(lhs, rhs, description)
+        vim.keymap.set('n', lhs, rhs, {
+          buffer = bufnr,
+          silent = true,
+          desc = 'swiftnav: ' .. description,
+        })
+      end
+      map('gd', nav.definition, 'definition')
+      map('gD', nav.declaration, 'declaration')
+      map('gy', nav.type_definition, 'type definition')
+      map('gi', nav.implementation, 'implementations')
+      map('gr', nav.references, 'references')
+      map('grr', nav.references, 'references')
+      map('gri', nav.implementation, 'implementations')
+      map('grt', nav.type_definition, 'type definition')
+      map('K', nav.hover, 'hover')
+      map('gO', function()
+        require('swiftnav.jumpbar').open()
+      end, 'document items')
+      map('<C-]>', nav.definition, 'jump to definition')
+
+      vim.defer_fn(function()
+        if vim.api.nvim_buf_is_valid(bufnr) then
+          require('swiftnav.indexer').ensure(bufnr, function() end, false)
+        end
+      end, 1500)
     end,
   })
 
@@ -78,6 +108,15 @@ function M.setup()
   vim.api.nvim_create_user_command('SwiftWarm', function()
     require('swiftnav.index').warm()
   end, { desc = 'Build the sourcekit-lsp index ahead of a session' })
+
+  vim.api.nvim_create_user_command('SwiftIndex', function()
+    local indexer = require('swiftnav.indexer')
+    indexer.rebuild()
+    indexer.ensure(0, function()
+      local count, root = indexer.stats()
+      require('swiftnav.util').notify(string.format('%d declarations in %s', count, vim.fs.basename(root or '')))
+    end, true)
+  end, { desc = 'Rebuild the Swift declaration index' })
 
   vim.keymap.set('n', '<leader>so', guard(function()
     require('swiftnav.open').open()
