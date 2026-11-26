@@ -352,7 +352,7 @@ local function render()
       lines[#lines + 1] = header
       marks[#lines] = { { 0, #header, 'SwiftNavSection' } }
       for _, entry in ipairs(section_table.items) do
-        local path = entry.uri and util.relpath(vim.uri_to_fname(entry.uri)) or '?'
+        local path = entry.uri and util.basename(vim.uri_to_fname(entry.uri)) or '?'
         local location = string.format('%s:%d', path, entry.range and (entry.range.start.line + 1) or 1)
         local text = '    ' .. entry.label
         local room = width - vim.fn.strdisplaywidth(location) - 2
@@ -392,6 +392,19 @@ local function render()
   state.rowmap = rowmap
   if api.nvim_win_get_cursor(state.win)[1] > #lines then
     api.nvim_win_set_cursor(state.win, { math.max(1, #lines), 0 })
+  end
+
+  local desired = util.clamp(#lines + 1, 8, math.floor(vim.o.lines * 0.8))
+  if desired ~= state.height and api.nvim_win_is_valid(state.win) then
+    state.height = desired
+    local config = api.nvim_win_get_config(state.win)
+    api.nvim_win_set_config(state.win, {
+      relative = 'editor',
+      width = config.width,
+      height = desired,
+      row = math.max(0, math.floor((vim.o.lines - desired) / 2)),
+      col = config.col,
+    })
   end
 end
 
@@ -467,6 +480,7 @@ function M.open()
     character = cursor[2],
     sections = {},
     rowmap = {},
+    height = height,
     title = 'Related',
     reloads = 0,
     retry_timer = nil,
