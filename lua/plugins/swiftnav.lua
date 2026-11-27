@@ -1,5 +1,5 @@
 return {
   'guitaripod/swiftnav.nvim',
   lazy = false,
-  opts = {},
+  opts = { icons = true },
 }
